@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>语文点心大战</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&display=swap');
+
+        body {
+            font-family: 'ZCOOL KuaiLe', 'Comic Sans MS', cursive, sans-serif;
+            background-color: #1a1a1a;
+            overscroll-behavior: none;
+        }
+
+        .steamer {
+            width: 130px;
+            height: 130px;
+            border-radius: 50%;
+            background: #e2b47d;
+            border: 10px solid #a06e3b;
+            box-shadow: inset 0 0 15px rgba(0,0,0,0.4), 0 8px 12px rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            flex-wrap: wrap;
+            padding: 10px;
+            gap: 5px;
+        }
+
+        .steamer-lines {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            border-radius: 50%;
+            background-image: repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(0,0,0,0.15) 10px, rgba(0,0,0,0.15) 12px);
+            pointer-events: none;
+        }
+
+        .food-container {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-end;
+            width: 70px;
+            height: 80px;
+        }
+
+        .plate {
+            width: 65px;
+            height: 20px;
+            background: #f1f5f9;
+            border-radius: 50%;
+            box-shadow: inset 0 -3px 5px rgba(0,0,0,0.1), 0 4px 4px rgba(0,0,0,0.3);
+            position: absolute;
+            bottom: 5px;
+            z-index: 1;
+        }
+
+        .baozi {
+            font-family: 'Kaiti', 'STKaiti', 'KaiTi_GB2312', '楷体', serif;
+            width: 50px;
+            height: 50px;
+            background: radial-gradient(circle at 30% 30%, #fff, #fef08a);
+            border-radius: 50% 50% 40% 40%;
+            box-shadow: inset -4px -4px 8px rgba(0,0,0,0.1), 0 4px 6px rgba(0,0,0,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: #b91c1c;
+            cursor: grab;
+            user-select: none;
+            touch-action: none;
+            position: relative;
+            z-index: 10;
+            transition: transform 0.2s ease-out;
+            text-align: center;
+            line-height: 1.1;
+            white-space: nowrap;
+        }
+
+        .baozi:active { cursor: grabbing; }
+
+        .mini-baozi {
+            font-family: 'Kaiti', 'STKaiti', 'KaiTi_GB2312', '楷体', serif;
+            width: 30px;
+            height: 30px;
+            background: radial-gradient(circle at 30% 30%, #fff, #fef08a);
+            border-radius: 50% 50% 40% 40%;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: #b91c1c;
+            z-index: 5;
+            text-align: center;
+            line-height: 1;
+            white-space: nowrap;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            25% { transform: translate(-8px, 0) scale(1.1); }
+            50% { transform: translate(8px, 0) scale(1.1); }
+            75% { transform: translate(-8px, 0) scale(1.1); }
+        }
+        .anim-shake { animation: shake 0.3s ease-in-out; }
+
+        .fade-in { animation: fadeIn 0.5s ease-in; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .mode-btn.active, .bank-mode-btn.active {
+            background-color: #ca8a04;
+            border-color: #a16207;
+            transform: scale(1.05);
+            opacity: 1;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+        }
+    </style>
+</head>
+<body class="h-screen w-screen overflow-hidden flex select-none text-white relative">
+
+    <!-- 背景音乐控件 -->
+    <audio id="bgm" src="./bgm.mp3" loop></audio>
+    <button id="bgm-toggle-btn" class="absolute top-4 right-4 z-[90] bg-slate-800/80 border border-slate-600 rounded-full w-12 h-12 flex items-center justify-center text-2xl shadow-lg hover:bg-slate-700 transition-all">
+        🎵
+    </button>
+
+    <!-- 顶部中央公共信息区 -->
+    <div class="absolute top-2 left-1/2 transform -translate-x-1/2 flex flex-col items-center z-30 pointer-events-none w-full">
+        <div class="flex items-center gap-6 mb-2">
+            <div class="bg-slate-800 border-2 border-slate-600 rounded-full px-5 py-1 flex items-center gap-2 shadow-lg">
+                <span class="text-gray-300 text-xl">⏳</span>
+                <span id="timer-display" class="text-3xl font-bold text-white tracking-widest transition-colors duration-300">45</span>
+            </div>
+        </div>
+        
+        <div class="text-5xl text-yellow-300 py-3 px-12 bg-slate-800 rounded-3xl border-4 border-yellow-600 shadow-[0_0_25px_rgba(253,224,71,0.5)] whitespace-nowrap font-bold tracking-wider" id="shared-target">
+            加载中...
+        </div>
+
+        <p id="game-sub-title" class="text-gray-200 mt-3 text-sm bg-black/60 px-6 py-1.5 rounded-full backdrop-blur-sm pointer-events-auto">
+            将 3 个与拼音匹配的同音字拖入你的蒸笼中！
+        </p>
+    </div>
+
+    <!-- 玩家1区域 (左半屏) -->
+    <div class="w-1/2 h-full bg-slate-900 border-r-2 border-slate-700 flex flex-col items-center pt-28 pb-2 relative z-10">
+        <div class="absolute top-4 left-6 flex items-center gap-4">
+            <div class="text-3xl text-blue-300 font-bold tracking-widest drop-shadow">玩家 1</div>
+            <div class="text-xl text-gray-400 bg-slate-800 px-4 py-1 rounded-full border border-slate-700">得分: <span id="p1-score" class="text-3xl text-blue-400 font-bold">0</span></div>
+        </div>
+        
+        <div class="steamer mb-3" id="p1-basket"><div class="steamer-lines"></div></div>
+        <div class="text-lg bg-blue-900/60 px-5 py-1 rounded-full border border-blue-500 mb-2">
+            进度: <span id="p1-progress" class="text-blue-300 font-bold">0</span> / 3
+        </div>
+
+        <div id="p1-grid-container" class="flex-1 grid grid-cols-4 grid-rows-4 gap-y-2 lg:gap-y-4 gap-x-2 lg:gap-x-6 place-items-center w-full px-2 lg:px-8 min-h-0"></div>
+    </div>
+
+    <!-- 玩家2区域 (右半屏) -->
+    <div class="w-1/2 h-full bg-stone-900 border-l-2 border-slate-700 flex flex-col items-center pt-28 pb-2 relative z-10">
+        <div class="absolute top-4 right-20 flex items-center gap-4 flex-row-reverse">
+            <div class="text-3xl text-red-300 font-bold tracking-widest drop-shadow">玩家 2</div>
+            <div class="text-xl text-gray-400 bg-stone-800 px-4 py-1 rounded-full border border-stone-700">得分: <span id="p2-score" class="text-3xl text-red-400 font-bold">0</span></div>
+        </div>
+        
+        <div class="steamer mb-3" id="p2-basket"><div class="steamer-lines"></div></div>
+        <div class="text-lg bg-red-900/60 px-5 py-1 rounded-full border border-red-500 mb-2">
+            进度: <span id="p2-progress" class="text-red-300 font-bold">0</span> / 3
+        </div>
+
+        <div id="p2-grid-container" class="flex-1 grid grid-cols-4 grid-rows-4 gap-y-2 lg:gap-y-4 gap-x-2 lg:gap-x-6 place-items-center w-full px-2 lg:px-8 min-h-0"></div>
+    </div>
+
+    <!-- 轮次回合结束提示层 -->
+    <div id="round-overlay" class="absolute inset-0 bg-black/80 z-[60] hidden flex-col items-center justify-center fade-in pointer-events-none">
+        <h2 id="round-winner-text" class="text-7xl font-bold mb-6 drop-shadow-[0_5px_5px_rgba(0,0,0,1)]">玩家获胜！</h2>
+        <p class="text-3xl text-gray-300">双方准备下一题...</p>
+    </div>
+    
+    <!-- 游戏开始说明层 -->
+    <div id="start-overlay" class="absolute inset-0 bg-black/95 z-[70] flex flex-col items-center justify-center fade-in">
+        <h1 class="text-6xl text-yellow-400 mb-8 font-bold drop-shadow-xl">语文抢答大战</h1>
+        
+        <div class="mb-8 flex gap-4 justify-center w-full max-w-2xl">
+            <button class="mode-btn active flex-1 py-4 bg-slate-700 text-white rounded-xl border-4 border-slate-600 font-bold text-2xl transition-all opacity-70" data-mode="homophone">同音字</button>
+            <button class="mode-btn flex-1 py-4 bg-slate-700 text-white rounded-xl border-4 border-slate-600 font-bold text-2xl transition-all opacity-70" data-mode="polyphone">多音多义字</button>
+            <button class="mode-btn flex-1 py-4 bg-slate-700 text-white rounded-xl border-4 border-slate-600 font-bold text-2xl transition-all opacity-70" data-mode="initials">首字母缩写</button>
+        </div>
+
+        <ul class="text-xl space-y-4 mb-8 text-gray-300 text-left w-4/5 max-w-xl">
+            <li>🎯 屏幕左右两边分别是两位玩家的专属操作区。</li>
+            <li id="instruction-target">👀 仔细看屏幕中央上方的<span class="text-yellow-400 font-bold">题目</span>。</li>
+            <li>👆 在自己的地盘找到正确的字，拖进蒸笼。</li>
+            <li>⚡ 率先集齐 <span class="text-yellow-400 font-bold text-3xl">3</span> 个正确点心的玩家获得一分！</li>
+            <li>⏳ 限时 <span class="text-yellow-400 font-bold">45</span> 秒，一人完成则双人共同进入下一题。</li>
+        </ul>
+
+        <div id="csv-status" class="mb-4 text-yellow-300 text-lg font-bold">⏳ 正在从服务器拉取最新题库...</div>
+
+        <div class="flex gap-6">
+            <button id="start-btn" disabled class="px-10 py-4 bg-gray-500 text-white text-3xl rounded-full shadow transition-all cursor-not-allowed">
+                加载题库中...
+            </button>
+            <button id="open-bank-btn" class="px-8 py-4 bg-yellow-600 hover:bg-yellow-500 text-white text-3xl rounded-full shadow-[0_8px_0_#854d0e] active:translate-y-2 active:shadow-none transition-all">
+                ⚙️ 预览/管理题库
+            </button>
+        </div>
+    </div>
+
+    <!-- 题库管理弹窗 -->
+    <div id="bank-modal" class="absolute inset-0 bg-black/90 z-[80] hidden flex-col items-center justify-center p-6 fade-in">
+        <div class="bg-slate-800 rounded-2xl p-6 w-full max-w-4xl border-2 border-slate-600 max-h-[90vh] flex flex-col shadow-2xl">
+            <div class="flex justify-between items-center mb-4 pb-3 border-b border-slate-700">
+                <h2 class="text-3xl font-bold text-yellow-400">⚙️ 题库预览与修改</h2>
+                <div class="flex gap-3">
+                    <button id="export-csv-btn" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 rounded-xl text-lg font-bold shadow transition-all">📥 导出当前 CSV</button>
+                    <label class="px-4 py-2 bg-blue-600 hover:bg-blue-500 rounded-xl text-lg font-bold shadow cursor-pointer transition-all">
+                        📤 临时导入 CSV <input type="file" id="import-csv-input" accept=".csv" class="hidden">
+                    </label>
+                    <button id="close-bank-btn" class="px-4 py-2 bg-gray-600 hover:bg-gray-500 rounded-xl text-lg font-bold shadow transition-all">✕ 关闭</button>
+                </div>
+            </div>
+
+            <div class="flex gap-3 mb-4">
+                <button class="bank-mode-btn active px-5 py-2 bg-slate-700 rounded-xl border-2 border-slate-500 text-lg font-bold transition-all" data-mode="homophone">同音字</button>
+                <button class="bank-mode-btn px-5 py-2 bg-slate-700 rounded-xl border-2 border-slate-500 text-lg font-bold transition-all" data-mode="polyphone">多音多义字</button>
+                <button class="bank-mode-btn px-5 py-2 bg-slate-700 rounded-xl border-2 border-slate-500 text-lg font-bold transition-all" data-mode="initials">首字母缩写</button>
+            </div>
+
+            <div class="bg-slate-900 p-4 rounded-xl mb-4 flex gap-3 items-center border border-slate-700">
+                <input type="text" id="new-key-input" placeholder="题目 (如: shì)" class="px-4 py-2 bg-slate-800 border border-slate-600 rounded-lg text-white w-1/3 text-lg focus:outline-none focus:border-yellow-500">
+                <input type="text" id="new-values-input" placeholder="答案 (用竖线或逗号分隔，如: 是|事|市)" class="px-4 py-2 bg-slate-800 border border-slate-600 rounded-lg text-white flex-1 text-lg focus:outline-none focus:border-yellow-500">
+                <button id="add-item-btn" class="px-6 py-2 bg-yellow-600 hover:bg-yellow-500 text-white font-bold rounded-lg text-lg shadow transition-all whitespace-nowrap">+ 添加题目</button>
+            </div>
+
+            <div class="flex-1 overflow-y-auto space-y-2 pr-2" id="bank-list-container"></div>
+        </div>
+    </div>
+
+    <!-- 游戏结束结算层 -->
+    <div id="game-over-overlay" class="absolute inset-0 bg-black/95 z-[70] hidden flex-col items-center justify-center fade-in">
+        <h1 class="text-7xl text-yellow-400 mb-6 font-bold drop-shadow-lg">时间到！</h1>
+        <h2 id="final-winner-text" class="text-6xl text-white mb-12 font-bold"></h2>
+        <div class="flex gap-24 mb-16 text-5xl">
+            <div class="text-blue-400 flex flex-col items-center"><span>玩家 1</span><span id="final-p1-score" class="text-8xl font-bold mt-4 text-white drop-shadow">0</span></div>
+            <div class="text-red-400 flex flex-col items-center"><span>玩家 2</span><span id="final-p2-score" class="text-8xl font-bold mt-4 text-white drop-shadow">0</span></div>
+        </div>
+        <div class="flex gap-8">
+            <button id="restart-btn" class="px-10 py-5 bg-blue-600 hover:bg-blue-500 text-white text-4xl rounded-full shadow-[0_8px_0_#1d4ed8] active:translate-y-2 active:shadow-none transition-all">
+                再来一局
+            </button>
+            <button id="menu-btn" class="px-10 py-5 bg-slate-600 hover:bg-slate-500 text-white text-4xl rounded-full shadow-[0_8px_0_#334155] active:translate-y-2 active:shadow-none transition-all">
+                返回菜单
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // --- 内存题库变量 ---
+        let gameDictionaries = {
+            homophone: {},
+            polyphone: {},
+            initials: {}
+        };
+
+        // --- BGM 控制 ---
+        const bgm = document.getElementById('bgm');
+        const bgmBtn = document.getElementById('bgm-toggle-btn');
+        let isBgmPlaying = false;
+
+        function toggleBGM() {
+            if (isBgmPlaying) {
+                bgm.pause();
+                bgmBtn.innerText = "🔇";
+                isBgmPlaying = false;
+            } else {
+                bgm.play().then(() => {
+                    bgmBtn.innerText = "🎵";
+                    isBgmPlaying = true;
+                }).catch(() => {
+                    console.log("需要用户互动后才可以播放背景音乐");
+                });
+            }
+        }
+        bgmBtn.addEventListener('click', toggleBGM);
+
+        // --- 自动从 GitHub 加载 CSV 题库 ---
+        async function fetchExternalCSV() {
+            const statusEl = document.getElementById('csv-status');
+            const startBtn = document.getElementById('start-btn');
+            try {
+                // 读取同级的 questions.csv，带有时间戳防止浏览器强缓存
+                const response = await fetch(`./questions.csv?t=${Date.now()}`);
+                if (!response.ok) throw new Error("无法获取 questions.csv 文件");
+                const text = await response.text();
+                parseCSVToDictionaries(text);
+                
+                statusEl.innerText = "✅ GitHub 题库同步成功！";
+                statusEl.className = "mb-4 text-green-400 text-lg font-bold";
+                enableStartButton();
+            } catch (err) {
+                console.warn("读取远程CSV失败，切换至应急备用题库:", err);
+                statusEl.innerText = "⚠️ 未检测到远程 questions.csv，已加载默认应急题库。";
+                statusEl.className = "mb-4 text-yellow-400 text-lg font-bold";
+                loadFallbackDictionary();
+                enableStartButton();
+            }
+        }
+
+        function parseCSVToDictionaries(csvText) {
+            gameDictionaries = { homophone: {}, polyphone: {}, initials: {} };
+            const lines = csvText.split(/\r?\n/);
+
+            lines.forEach((line, index) => {
+                if (index === 0 || !line.trim()) return; // 忽略表头和空行
+
+                // 拆分模式、题目、答案
+                const match = line.match(/(?:^|,)("(?:[^"]|"")*"|[^,]*)/g);
+                if (match && match.length >= 3) {
+                    const cleanField = (str) => {
+                        let val = str.replace(/^,/, '').trim();
+                        if (val.startsWith('"') && val.endsWith('"')) {
+                            val = val.slice(1, -1).replace(/""/g, '"');
+                        }
+                        return val;
+                    };
+
+                    const mode = cleanField(match[0]);
+                    const key = cleanField(match[1]);
+                    const valuesRaw = cleanField(match[2]);
+
+                    if (gameDictionaries[mode] && key) {
+                        const values = valuesRaw.split(/[,，|｜]+/).map(v => v.trim()).filter(Boolean);
+                        if (values.length > 0) {
+                            gameDictionaries[mode][key] = values;
+                        }
+                    }
+                }
+            });
+        }
+
+        function loadFallbackDictionary() {
+            gameDictionaries = {
+                homophone: {
+                    "shì": ["是", "事", "市", "室", "试", "视", "世", "式", "势", "示"],
+                    "jī": ["机", "鸡", "基", "击", "饥", "积", "激", "肌", "讥", "叽"]
+                },
+                polyphone: {
+                    "zhòng (重)": ["重量", "重要", "沉重", "重心", "保重", "稳重"],
+                    "chóng (重)": ["重复", "重新", "重叠", "重逢", "重写", "双重"]
+                },
+                initials: {
+                    "B J": ["北京", "背景", "笔记", "编辑", "保健", "报警"],
+                    "K X": ["开心", "科学", "考试", "可笑", "空闲", "苦心"]
+                }
+            };
+        }
+
+        function enableStartButton() {
+            const startBtn = document.getElementById('start-btn');
+            startBtn.disabled = false;
+            startBtn.innerText = "开始对战";
+            startBtn.className = "px-10 py-4 bg-green-600 hover:bg-green-500 text-white text-3xl rounded-full shadow-[0_8px_0_#166534] active:translate-y-2 active:shadow-none transition-all cursor-pointer";
+        }
+
+        // --- 游戏状态 ---
+        let currentMode = 'homophone';
+        let bankCurrentMode = 'homophone';
+        let currentDict = {};
+        let availableKeys = []; 
+
+        let p1TotalScore = 0;
+        let p2TotalScore = 0;
+        let p1RoundItems = 0;
+        let p2RoundItems = 0;
+        let currentTarget = "";
+        let currentValidChars = [];
+        let isRoundActive = false;
+        const WIN_TARGET = 3;
+
+        let gameTimer = null;
+        let timeLeft = 45;
+        const GAME_DURATION = 45;
+
+        const startOverlay = document.getElementById('start-overlay');
+        const roundOverlay = document.getElementById('round-overlay');
+        const gameOverOverlay = document.getElementById('game-over-overlay');
+        const roundWinnerText = document.getElementById('round-winner-text');
+        const timerDisplay = document.getElementById('timer-display');
+        const bankModal = document.getElementById('bank-modal');
+        const bankListContainer = document.getElementById('bank-list-container');
+        
+        // --- 音效合成器 ---
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playTone(freq, type, duration, vol=0.1) {
+            if(audioCtx.state === 'suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = type;
+            osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            gain.gain.setValueAtTime(vol, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+            osc.stop(audioCtx.currentTime + duration);
+        }
+        function playPop() { playTone(600, 'sine', 0.1, 0.2); setTimeout(()=>playTone(800, 'sine', 0.1, 0.2), 50); }
+        function playError() { playTone(150, 'sawtooth', 0.3, 0.2); }
+        function playWin() { 
+            playTone(400, 'square', 0.1, 0.1); 
+            setTimeout(()=>playTone(600, 'square', 0.1, 0.1), 100); 
+            setTimeout(()=>playTone(800, 'square', 0.3, 0.1), 200); 
+        }
+
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        // --- 模式切换 ---
+        document.querySelectorAll('.mode-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+                e.target.classList.add('active');
+                
+                currentMode = e.target.dataset.mode;
+                const instructionTarget = document.getElementById('instruction-target');
+                const gameSubTitle = document.getElementById('game-sub-title');
+                
+                if (currentMode === 'homophone') {
+                    instructionTarget.innerHTML = '👀 看屏幕中央的拼音，在各自地盘找<span class="text-yellow-400 font-bold">同音字</span>。';
+                    gameSubTitle.innerText = "将 3 个与题目匹配的同音字拖入蒸笼！";
+                } else if (currentMode === 'polyphone') {
+                    instructionTarget.innerHTML = '👀 看屏幕中央的多音字题目，找能与之<span class="text-yellow-400 font-bold">组词的另一个字</span>。';
+                    gameSubTitle.innerText = "将 3 个能与题目组合成正确词语的字拖入蒸笼！";
+                } else {
+                    instructionTarget.innerHTML = '👀 看屏幕中央，找到符合该<span class="text-yellow-400 font-bold">首字母缩写</span>的词语。';
+                    gameSubTitle.innerText = "将 3 个符合该首字母缩写的词语拖入蒸笼！";
+                }
+            });
+        });
+
+        document.getElementById('start-btn').addEventListener('click', () => { 
+            if(audioCtx.state === 'suspended') audioCtx.resume(); 
+            if(!isBgmPlaying) toggleBGM(); // 点击开始对战时自动尝试播放音乐
+            startGame(); 
+        });
+        document.getElementById('restart-btn').addEventListener('click', () => { startGame(); });
+        document.getElementById('menu-btn').addEventListener('click', () => { gameOverOverlay.classList.add('hidden'); startOverlay.classList.remove('hidden'); });
+
+        // --- 题库预览弹窗 ---
+        document.getElementById('open-bank-btn').addEventListener('click', () => {
+            bankModal.classList.remove('hidden');
+            renderBankList();
+        });
+
+        document.getElementById('close-bank-btn').addEventListener('click', () => {
+            bankModal.classList.add('hidden');
+        });
+
+        document.querySelectorAll('.bank-mode-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                document.querySelectorAll('.bank-mode-btn').forEach(b => b.classList.remove('active'));
+                e.target.classList.add('active');
+                bankCurrentMode = e.target.dataset.mode;
+                renderBankList();
+            });
+        });
+
+        function renderBankList() {
+            bankListContainer.innerHTML = '';
+            const dict = gameDictionaries[bankCurrentMode] || {};
+            const keys = Object.keys(dict);
+
+            if (keys.length === 0) {
+                bankListContainer.innerHTML = `<div class="text-center text-gray-400 py-8 text-xl">该分类下暂无题目！</div>`;
+                return;
+            }
+
+            keys.forEach(key => {
+                const values = dict[key];
+                const itemEl = document.createElement('div');
+                itemEl.className = 'flex items-center justify-between bg-slate-700/60 px-4 py-3 rounded-xl border border-slate-600 hover:border-slate-500 transition-all';
+                itemEl.innerHTML = `
+                    <div class="flex items-center gap-4 flex-1 overflow-hidden pr-4">
+                        <span class="text-yellow-300 font-bold text-xl min-w-[100px]">${key}</span>
+                        <span class="text-gray-300 text-lg truncate">${values.join(' 、 ')}</span>
+                    </div>
+                    <button class="delete-key-btn text-red-400 hover:text-red-300 bg-red-950/40 hover:bg-red-900/60 px-3 py-1.5 rounded-lg border border-red-800 text-sm font-bold transition-all" data-key="${key}">
+                        🗑️ 删除
+                    </button>
+                `;
+                bankListContainer.appendChild(itemEl);
+            });
+
+            document.querySelectorAll('.delete-key-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const keyToDelete = e.currentTarget.dataset.key;
+                    delete gameDictionaries[bankCurrentMode][keyToDelete];
+                    renderBankList();
+                });
+            });
+        }
+
+        document.getElementById('add-item-btn').addEventListener('click', () => {
+            const keyInput = document.getElementById('new-key-input');
+            const valuesInput = document.getElementById('new-values-input');
+            const key = keyInput.value.trim();
+            const valuesRaw = valuesInput.value.trim();
+
+            if (!key || !valuesRaw) return alert("请填写完整的题目和答案！");
+
+            const values = valuesRaw.split(/[,，|｜\s]+/).filter(Boolean);
+            if (values.length < 3) return alert("每个题目请至少提供 3 个正确答案！");
+
+            gameDictionaries[bankCurrentMode][key] = values;
+            keyInput.value = '';
+            valuesInput.value = '';
+            renderBankList();
+        });
+
+        // 导出 CSV
+        document.getElementById('export-csv-btn').addEventListener('click', () => {
+            let csvLines = ["\uFEFF模式,题目,答案"];
+            for (let mode in gameDictionaries) {
+                for (let key in gameDictionaries[mode]) {
+                    let valuesStr = gameDictionaries[mode][key].join('|');
+                    csvLines.push(`${mode},"${key.replace(/"/g, '""')}","${valuesStr.replace(/"/g, '""')}"`);
+                }
+            }
+            const blob = new Blob([csvLines.join("\n")], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `questions.csv`;
+            a.click();
+            URL.revokeObjectURL(url);
+        });
+
+        // 临时导入 CSV
+        document.getElementById('import-csv-input').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                parseCSVToDictionaries(event.target.result);
+                alert("已成功加载上传的 CSV 题库！");
+                renderBankList();
+                e.target.value = '';
+            };
+            reader.readAsText(file, 'UTF-8');
+        });
+
+        // --- 核心游戏流程 ---
+        function startGame() {
+            currentDict = gameDictionaries[currentMode] || {};
+            if (Object.keys(currentDict).length === 0) {
+                alert("当前模式下题库为空，请先添加题目或检查 questions.csv！");
+                return;
+            }
+
+            startOverlay.classList.add('hidden');
+            gameOverOverlay.classList.add('hidden');
+            p1TotalScore = 0;
+            p2TotalScore = 0;
+            timeLeft = GAME_DURATION;
+            updateProgressUI();
+            updateTimerUI();
+            
+            availableKeys = [...Object.keys(currentDict)];
+            shuffleArray(availableKeys);
+            
+            clearInterval(gameTimer);
+            gameTimer = setInterval(() => {
+                timeLeft--;
+                updateTimerUI();
+                if (timeLeft <= 0) endGame();
+            }, 1000);
+
+            startNewRound();
+        }
+
+        function updateTimerUI() {
+            timerDisplay.innerText = timeLeft;
+            if (timeLeft <= 10) {
+                timerDisplay.classList.add('text-red-500', 'anim-shake');
+            } else {
+                timerDisplay.classList.remove('text-red-500', 'anim-shake');
+            }
+        }
+
+        function endGame() {
+            clearInterval(gameTimer);
+            isRoundActive = false;
+            roundOverlay.classList.add('hidden'); 
+            
+            const winnerText = document.getElementById('final-winner-text');
+            document.getElementById('final-p1-score').innerText = p1TotalScore;
+            document.getElementById('final-p2-score').innerText = p2TotalScore;
+            
+            if (p1TotalScore > p2TotalScore) {
+                winnerText.innerText = "🏆 玩家 1 最终获胜！";
+                winnerText.className = "text-6xl font-bold mb-12 text-blue-400 drop-shadow-[0_5px_5px_rgba(0,0,0,1)]";
+            } else if (p2TotalScore > p1TotalScore) {
+                winnerText.innerText = "🏆 玩家 2 最终获胜！";
+                winnerText.className = "text-6xl font-bold mb-12 text-red-400 drop-shadow-[0_5px_5px_rgba(0,0,0,1)]";
+            } else {
+                winnerText.innerText = "🤝 势均力敌，平局！";
+                winnerText.className = "text-6xl font-bold mb-12 text-yellow-400 drop-shadow-[0_5px_5px_rgba(0,0,0,1)]";
+            }
+            
+            gameOverOverlay.classList.remove('hidden');
+            playWin();
+        }
+
+        function generatePlayerBoard(containerId, playerNum) {
+            let boardObjects = [];
+            
+            let correctItems = shuffleArray([...currentValidChars]).slice(0, 3);
+            correctItems.forEach(item => {
+                let display = item;
+                if (currentMode === 'polyphone') {
+                    const match = currentTarget.match(/\((.*?)\)/);
+                    if (match) display = item.replace(match[1], '');
+                }
+                boardObjects.push({ value: item, display: display });
+            });
+
+            let distractorItems = [];
+            Object.keys(currentDict).forEach(key => {
+                if (key !== currentTarget) {
+                    currentDict[key].forEach(item => {
+                        let display = item;
+                        if (currentMode === 'polyphone') {
+                            const match = key.match(/\((.*?)\)/);
+                            if (match) display = item.replace(match[1], '');
+                        }
+                        distractorItems.push({ value: item, display: display });
+                    });
+                }
+            });
+            distractorItems = shuffleArray(distractorItems).slice(0, 13);
+
+            boardObjects = boardObjects.concat(distractorItems);
+            boardObjects = shuffleArray(boardObjects);
+
+            const gridContainer = document.getElementById(containerId);
+            gridContainer.innerHTML = '';
+            
+            boardObjects.forEach((obj) => {
+                const wrapper = document.createElement('div');
+                wrapper.className = 'food-container';
+                
+                const plate = document.createElement('div');
+                plate.className = 'plate';
+                
+                const baozi = document.createElement('div');
+                baozi.className = 'baozi';
+                baozi.innerText = obj.display;
+                baozi.dataset.char = obj.value; 
+                baozi.dataset.player = playerNum;
+                
+                baozi.style.fontSize = '28px';
+                if (obj.display.length > 1) {
+                    baozi.style.letterSpacing = '-2px';
+                }
+                
+                wrapper.appendChild(plate);
+                wrapper.appendChild(baozi);
+                gridContainer.appendChild(wrapper);
+            });
+        }
+
+        function startNewRound() {
+            isRoundActive = true;
+            p1RoundItems = 0;
+            p2RoundItems = 0;
+            updateProgressUI();
+            
+            document.querySelectorAll('.steamer .mini-baozi').forEach(el => el.remove());
+            roundOverlay.classList.add('hidden');
+
+            if (availableKeys.length === 0) {
+                availableKeys = [...Object.keys(currentDict)];
+                availableKeys = availableKeys.filter(k => k !== currentTarget);
+                shuffleArray(availableKeys);
+            }
+            currentTarget = availableKeys.pop();
+            currentValidChars = currentDict[currentTarget];
+            
+            document.getElementById('shared-target').innerText = currentTarget;
+
+            generatePlayerBoard('p1-grid-container', 1);
+            generatePlayerBoard('p2-grid-container', 2);
+        }
+
+        function updateProgressUI() {
+            document.getElementById('p1-progress').innerText = p1RoundItems;
+            document.getElementById('p2-progress').innerText = p2RoundItems;
+            document.getElementById('p1-score').innerText = p1TotalScore;
+            document.getElementById('p2-score').innerText = p2TotalScore;
+        }
+
+        function handleRoundWin(playerNum) {
+            isRoundActive = false;
+            playWin();
+            
+            if(playerNum === 1) {
+                p1TotalScore++;
+                roundWinnerText.innerText = "玩家 1 得分！";
+                roundWinnerText.className = "text-7xl font-bold mb-6 text-blue-400 drop-shadow-[0_5px_5px_rgba(0,0,0,1)]";
+            } else {
+                p2TotalScore++;
+                roundWinnerText.innerText = "玩家 2 得分！";
+                roundWinnerText.className = "text-7xl font-bold mb-6 text-red-400 drop-shadow-[0_5px_5px_rgba(0,0,0,1)]";
+            }
+            
+            updateProgressUI();
+
+            if (timeLeft <= 0) return;
+            
+            roundOverlay.classList.remove('hidden');
+            
+            setTimeout(() => {
+                if (timeLeft > 0) startNewRound();
+            }, 2000);
+        }
+
+        // --- 全局拖拽逻辑 ---
+        let activeDrags = {}; 
+
+        document.body.addEventListener('pointerdown', (e) => {
+            if (!isRoundActive) return;
+            const baozi = e.target.closest('.baozi');
+            if (!baozi || baozi.style.visibility === 'hidden') return;
+
+            baozi.setPointerCapture(e.pointerId);
+            baozi.style.transition = 'none';
+            baozi.style.zIndex = 50;
+
+            activeDrags[e.pointerId] = {
+                el: baozi,
+                startX: e.clientX,
+                startY: e.clientY
+            };
+        });
+
+        document.body.addEventListener('pointermove', (e) => {
+            if (!activeDrags[e.pointerId]) return;
+            
+            const dragInfo = activeDrags[e.pointerId];
+            const dx = e.clientX - dragInfo.startX;
+            const dy = e.clientY - dragInfo.startY;
+            
+            dragInfo.el.style.transform = `translate(${dx}px, ${dy}px) scale(1.1)`;
+        });
+
+        document.body.addEventListener('pointerup', (e) => {
+            if (!activeDrags[e.pointerId]) return;
+            
+            const dragInfo = activeDrags[e.pointerId];
+            const baozi = dragInfo.el;
+            
+            baozi.releasePointerCapture(e.pointerId);
+            delete activeDrags[e.pointerId];
+
+            baozi.style.zIndex = 10;
+            baozi.style.transition = 'transform 0.2s ease-out';
+
+            checkDropZone(baozi, e.clientX, e.clientY);
+        });
+
+        document.body.addEventListener('pointercancel', (e) => {
+            if (!activeDrags[e.pointerId]) return;
+            const baozi = activeDrags[e.pointerId].el;
+            delete activeDrags[e.pointerId];
+            snapBack(baozi);
+        });
+
+        function checkDropZone(baozi, clientX, clientY) {
+            const char = baozi.dataset.char;
+            const playerOwner = parseInt(baozi.dataset.player);
+            const isCorrect = currentValidChars.includes(char);
+            
+            const targetBasket = document.getElementById(`p${playerOwner}-basket`).getBoundingClientRect();
+            const pad = 30;
+            let inOwnBasket = false;
+            
+            if (clientX >= targetBasket.left - pad && clientX <= targetBasket.right + pad &&
+                clientY >= targetBasket.top - pad && clientY <= targetBasket.bottom + pad) {
+                inOwnBasket = true;
+            }
+
+            if (inOwnBasket) {
+                if (isCorrect) {
+                    playPop();
+                    baozi.style.visibility = 'hidden';
+                    baozi.style.transform = 'translate(0, 0) scale(1)';
+                    
+                    const miniBaozi = document.createElement('div');
+                    miniBaozi.className = 'mini-baozi fade-in';
+                    miniBaozi.innerText = char;
+                    
+                    if (char.length > 1) {
+                        miniBaozi.style.fontSize = '12px';
+                        miniBaozi.style.letterSpacing = '-1px';
+                    } else {
+                        miniBaozi.style.fontSize = '16px';
+                    }
+
+                    document.getElementById(`p${playerOwner}-basket`).appendChild(miniBaozi);
+                    
+                    if (playerOwner === 1) {
+                        p1RoundItems++;
+                        if (p1RoundItems >= WIN_TARGET) handleRoundWin(1);
+                    } else {
+                        p2RoundItems++;
+                        if (p2RoundItems >= WIN_TARGET) handleRoundWin(2);
+                    }
+                    updateProgressUI();
+                } else {
+                    playError();
+                    baozi.classList.add('anim-shake');
+                    setTimeout(() => baozi.classList.remove('anim-shake'), 300);
+                    snapBack(baozi);
+                }
+            } else {
+                snapBack(baozi);
+            }
+        }
+
+        function snapBack(baozi) {
+            baozi.style.transform = 'translate(0, 0) scale(1)';
+        }
+
+        // 初始化：页面加载时拉取 GitHub 上的 CSV
+        window.addEventListener('DOMContentLoaded', fetchExternalCSV);
+    </script>
+</body>
+</html>
