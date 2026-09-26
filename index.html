@@ -152,7 +152,28 @@
     </div>
 
     <!-- 玩家1区域 (左半屏) -->
-    <div class="w-1/2 h-full bg-slate-900 border-r-2 border-slate-700 flex flex-col items-center pt-28 pb-2 relative z-10">
+    <div class="w-1/2 h-full bg-slate-900 border-r-2 border-slate-700 flex flex-col items-center pt-28 pb-2 relative z-10" id="p1-area">
+        <!-- 玩家1 蜘蛛网惩罚遮罩 -->
+        <div id="p1-freeze-overlay" class="absolute inset-0 bg-black/75 z-50 hidden flex-col items-center justify-center backdrop-blur-[2px] transition-all">
+            <div class="relative flex flex-col items-center justify-center animate-bounce">
+                <svg class="w-48 h-48 text-gray-300 drop-shadow-[0_0_15px_rgba(255,255,255,0.4)]" viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+                    <polygon points="50,5 89,27 89,73 50,95 11,73 11,27" />
+                    <polygon points="50,20 76,35 76,65 50,80 24,65 24,35" />
+                    <polygon points="50,35 63,42 63,58 50,65 37,58 37,42" />
+                    <line x1="50" y1="50" x2="50" y2="5" />
+                    <line x1="50" y1="50" x2="89" y2="27" />
+                    <line x1="50" y1="50" x2="89" y2="73" />
+                    <line x1="50" y1="50" x2="50" y2="95" />
+                    <line x1="50" y1="50" x2="11" y2="73" />
+                    <line x1="50" y1="50" x2="11" y2="27" />
+                </svg>
+                <span class="text-6xl absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">🕷️</span>
+            </div>
+            <div class="text-2xl text-red-400 font-bold mt-4 bg-slate-900/90 px-6 py-2 rounded-full border border-red-500/50 shadow-lg tracking-wider">
+                🕸️ 答错惩罚！暂停 2 秒 🕸️
+            </div>
+        </div>
+
         <div class="absolute top-4 left-6 flex items-center gap-4">
             <div class="text-3xl text-blue-300 font-bold tracking-widest drop-shadow">玩家 1</div>
             <div class="text-xl text-gray-400 bg-slate-800 px-4 py-1 rounded-full border border-slate-700">得分: <span id="p1-score" class="text-3xl text-blue-400 font-bold">0</span></div>
@@ -167,7 +188,28 @@
     </div>
 
     <!-- 玩家2区域 (右半屏) -->
-    <div class="w-1/2 h-full bg-stone-900 border-l-2 border-slate-700 flex flex-col items-center pt-28 pb-2 relative z-10">
+    <div class="w-1/2 h-full bg-stone-900 border-l-2 border-slate-700 flex flex-col items-center pt-28 pb-2 relative z-10" id="p2-area">
+        <!-- 玩家2 蜘蛛网惩罚遮罩 -->
+        <div id="p2-freeze-overlay" class="absolute inset-0 bg-black/75 z-50 hidden flex-col items-center justify-center backdrop-blur-[2px] transition-all">
+            <div class="relative flex flex-col items-center justify-center animate-bounce">
+                <svg class="w-48 h-48 text-gray-300 drop-shadow-[0_0_15px_rgba(255,255,255,0.4)]" viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+                    <polygon points="50,5 89,27 89,73 50,95 11,73 11,27" />
+                    <polygon points="50,20 76,35 76,65 50,80 24,65 24,35" />
+                    <polygon points="50,35 63,42 63,58 50,65 37,58 37,42" />
+                    <line x1="50" y1="50" x2="50" y2="5" />
+                    <line x1="50" y1="50" x2="89" y2="27" />
+                    <line x1="50" y1="50" x2="89" y2="73" />
+                    <line x1="50" y1="50" x2="50" y2="95" />
+                    <line x1="50" y1="50" x2="11" y2="73" />
+                    <line x1="50" y1="50" x2="11" y2="27" />
+                </svg>
+                <span class="text-6xl absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">🕷️</span>
+            </div>
+            <div class="text-2xl text-red-400 font-bold mt-4 bg-stone-900/90 px-6 py-2 rounded-full border border-red-500/50 shadow-lg tracking-wider">
+                🕸️ 答错惩罚！暂停 2 秒 🕸️
+            </div>
+        </div>
+
         <div class="absolute top-4 right-20 flex items-center gap-4 flex-row-reverse">
             <div class="text-3xl text-red-300 font-bold tracking-widest drop-shadow">玩家 2</div>
             <div class="text-xl text-gray-400 bg-stone-800 px-4 py-1 rounded-full border border-stone-700">得分: <span id="p2-score" class="text-3xl text-red-400 font-bold">0</span></div>
@@ -197,10 +239,11 @@
             <button class="mode-btn flex-1 py-4 bg-slate-700 text-white rounded-xl border-4 border-slate-600 font-bold text-2xl transition-all opacity-70" data-mode="initials">首字母缩写</button>
         </div>
 
-        <ul class="text-xl space-y-4 mb-8 text-gray-300 text-left w-4/5 max-w-xl">
+        <ul class="text-xl space-y-3 mb-8 text-gray-300 text-left w-4/5 max-w-xl">
             <li>🎯 屏幕左右两边分别是两位玩家的专属操作区。</li>
             <li id="instruction-target">👀 仔细看屏幕中央上方的<span class="text-yellow-400 font-bold">题目</span>。</li>
             <li>👆 在自己的地盘找到正确的字，拖进蒸笼。</li>
+            <li>⚠️ <span class="text-red-400 font-bold">答错惩罚：</span>盲目尝试拖入错误答案，将触发<span class="text-red-400 font-bold">蜘蛛网封印暂停 2 秒</span>！</li>
             <li>⚡ 率先集齐 <span class="text-yellow-400 font-bold text-3xl">3</span> 个正确点心的玩家获得一分！</li>
             <li>⏳ 限时 <span class="text-yellow-400 font-bold">45</span> 秒，一人完成则双人共同进入下一题。</li>
         </ul>
@@ -299,7 +342,6 @@
             const statusEl = document.getElementById('csv-status');
             const startBtn = document.getElementById('start-btn');
             try {
-                // 读取同级的 questions.csv，带有时间戳防止浏览器强缓存
                 const response = await fetch(`./questions.csv?t=${Date.now()}`);
                 if (!response.ok) throw new Error("无法获取 questions.csv 文件");
                 const text = await response.text();
@@ -322,9 +364,8 @@
             const lines = csvText.split(/\r?\n/);
 
             lines.forEach((line, index) => {
-                if (index === 0 || !line.trim()) return; // 忽略表头和空行
+                if (index === 0 || !line.trim()) return;
 
-                // 拆分模式、题目、答案
                 const match = line.match(/(?:^|,)("(?:[^"]|"")*"|[^,]*)/g);
                 if (match && match.length >= 3) {
                     const cleanField = (str) => {
@@ -392,6 +433,52 @@
         let timeLeft = 45;
         const GAME_DURATION = 45;
 
+        // --- 冻结惩罚机制状态 ---
+        let p1Frozen = false;
+        let p2Frozen = false;
+        let p1FreezeTimer = null;
+        let p2FreezeTimer = null;
+
+        function freezePlayer(playerNum) {
+            if (playerNum === 1) {
+                p1Frozen = true;
+                const overlay = document.getElementById('p1-freeze-overlay');
+                overlay.classList.remove('hidden');
+                overlay.classList.add('flex');
+                
+                if (p1FreezeTimer) clearTimeout(p1FreezeTimer);
+                p1FreezeTimer = setTimeout(() => {
+                    p1Frozen = false;
+                    overlay.classList.add('hidden');
+                    overlay.classList.remove('flex');
+                }, 2000);
+            } else if (playerNum === 2) {
+                p2Frozen = true;
+                const overlay = document.getElementById('p2-freeze-overlay');
+                overlay.classList.remove('hidden');
+                overlay.classList.add('flex');
+                
+                if (p2FreezeTimer) clearTimeout(p2FreezeTimer);
+                p2FreezeTimer = setTimeout(() => {
+                    p2Frozen = false;
+                    overlay.classList.add('hidden');
+                    overlay.classList.remove('flex');
+                }, 2000);
+            }
+        }
+
+        function clearAllFreezes() {
+            p1Frozen = false;
+            p2Frozen = false;
+            if (p1FreezeTimer) clearTimeout(p1FreezeTimer);
+            if (p2FreezeTimer) clearTimeout(p2FreezeTimer);
+            
+            const ov1 = document.getElementById('p1-freeze-overlay');
+            const ov2 = document.getElementById('p2-freeze-overlay');
+            if (ov1) { ov1.classList.add('hidden'); ov1.classList.remove('flex'); }
+            if (ov2) { ov2.classList.add('hidden'); ov2.classList.remove('flex'); }
+        }
+
         const startOverlay = document.getElementById('start-overlay');
         const roundOverlay = document.getElementById('round-overlay');
         const gameOverOverlay = document.getElementById('game-over-overlay');
@@ -456,7 +543,7 @@
 
         document.getElementById('start-btn').addEventListener('click', () => { 
             if(audioCtx.state === 'suspended') audioCtx.resume(); 
-            if(!isBgmPlaying) toggleBGM(); // 点击开始对战时自动尝试播放音乐
+            if(!isBgmPlaying) toggleBGM();
             startGame(); 
         });
         document.getElementById('restart-btn').addEventListener('click', () => { startGame(); });
@@ -576,6 +663,8 @@
 
             startOverlay.classList.add('hidden');
             gameOverOverlay.classList.add('hidden');
+            clearAllFreezes();
+
             p1TotalScore = 0;
             p2TotalScore = 0;
             timeLeft = GAME_DURATION;
@@ -608,6 +697,7 @@
             clearInterval(gameTimer);
             isRoundActive = false;
             roundOverlay.classList.add('hidden'); 
+            clearAllFreezes();
             
             const winnerText = document.getElementById('final-winner-text');
             document.getElementById('final-p1-score').innerText = p1TotalScore;
@@ -691,6 +781,7 @@
             p1RoundItems = 0;
             p2RoundItems = 0;
             updateProgressUI();
+            clearAllFreezes();
             
             document.querySelectorAll('.steamer .mini-baozi').forEach(el => el.remove());
             roundOverlay.classList.add('hidden');
@@ -719,6 +810,7 @@
         function handleRoundWin(playerNum) {
             isRoundActive = false;
             playWin();
+            clearAllFreezes();
             
             if(playerNum === 1) {
                 p1TotalScore++;
@@ -748,6 +840,12 @@
             if (!isRoundActive) return;
             const baozi = e.target.closest('.baozi');
             if (!baozi || baozi.style.visibility === 'hidden') return;
+
+            // 检测该玩家是否处于答错冻结惩罚中
+            const playerOwner = parseInt(baozi.dataset.player);
+            if ((playerOwner === 1 && p1Frozen) || (playerOwner === 2 && p2Frozen)) {
+                return; // 冻结中，不可拖拽
+            }
 
             baozi.setPointerCapture(e.pointerId);
             baozi.style.transition = 'none';
@@ -838,6 +936,8 @@
                     baozi.classList.add('anim-shake');
                     setTimeout(() => baozi.classList.remove('anim-shake'), 300);
                     snapBack(baozi);
+                    // 触发答错惩罚冻结 2 秒
+                    freezePlayer(playerOwner);
                 }
             } else {
                 snapBack(baozi);
