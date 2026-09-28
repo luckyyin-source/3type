@@ -335,18 +335,27 @@
         const bgmBtn = document.getElementById('bgm-toggle-btn');
         let isBgmPlaying = false;
 
+        function playBGM() {
+            bgm.play().then(() => {
+                bgmBtn.innerText = "🎵";
+                isBgmPlaying = true;
+            }).catch(() => {
+                console.log("需要用户互动后才可以播放背景音乐");
+            });
+        }
+
+        function stopBGM() {
+            bgm.pause();
+            bgm.currentTime = 0;
+            bgmBtn.innerText = "🔇";
+            isBgmPlaying = false;
+        }
+
         function toggleBGM() {
             if (isBgmPlaying) {
-                bgm.pause();
-                bgmBtn.innerText = "🔇";
-                isBgmPlaying = false;
+                stopBGM();
             } else {
-                bgm.play().then(() => {
-                    bgmBtn.innerText = "🎵";
-                    isBgmPlaying = true;
-                }).catch(() => {
-                    console.log("需要用户互动后才可以播放背景音乐");
-                });
+                playBGM();
             }
         }
         bgmBtn.addEventListener('click', toggleBGM);
@@ -554,11 +563,16 @@
 
         document.getElementById('start-btn').addEventListener('click', () => { 
             if(audioCtx.state === 'suspended') audioCtx.resume(); 
-            if(!isBgmPlaying) toggleBGM(); 
             startGame(); 
         });
-        document.getElementById('restart-btn').addEventListener('click', () => { startGame(); });
-        document.getElementById('menu-btn').addEventListener('click', () => { gameOverOverlay.classList.add('hidden'); startOverlay.classList.remove('hidden'); });
+        document.getElementById('restart-btn').addEventListener('click', () => { 
+            if(audioCtx.state === 'suspended') audioCtx.resume(); 
+            startGame(); 
+        });
+        document.getElementById('menu-btn').addEventListener('click', () => { 
+            gameOverOverlay.classList.add('hidden'); 
+            startOverlay.classList.remove('hidden'); 
+        });
 
         // --- 题库预览弹窗 ---
         document.getElementById('open-bank-btn').addEventListener('click', () => {
@@ -672,6 +686,9 @@
                 return;
             }
 
+            // 🎮 开始游戏时：播放背景音乐（循环）
+            playBGM();
+
             clearPlayerFreezes();
             startOverlay.classList.add('hidden');
             gameOverOverlay.classList.add('hidden');
@@ -709,6 +726,9 @@
             isRoundActive = false;
             roundOverlay.classList.add('hidden'); 
             
+            // 🏆 分出胜负时：立刻停止背景音乐
+            stopBGM();
+
             const winnerText = document.getElementById('final-winner-text');
             document.getElementById('final-p1-score').innerText = p1TotalScore;
             document.getElementById('final-p2-score').innerText = p2TotalScore;
